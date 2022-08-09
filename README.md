@@ -19,6 +19,7 @@ Start Time, End Time, Trip Duration, Start Station, End Station, User Type, Gend
 - Plotext works best with a UNIX-like OS, as Windows has compatibility issues with color in the default terminal.
 - Matplotlib would be a better option to generate reports/charts, however, since the environment for this project was a terminal-based workspace,  a CLI plot library was used.
 - The plots look best when the terminal is maximized.
+- Use the save (s) option when provided with the graph prompt to save the graph in html format.
 
 ## Possible Improvements
 - Include all cities while analyzing data [Duplicate ride ids between city data will need to be handled]
