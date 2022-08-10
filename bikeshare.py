@@ -14,8 +14,9 @@ CITY_DATA = {'chicago': 'chicago.csv',
              'washington': 'washington.csv'}
 
 # Populate month and day names, with the first element being "all"
-month_names, day_names = list(map(lambda month: month.lower(
-), calendar.month_name)), list(map(lambda day: day.lower(), calendar.day_name))
+month_names, day_names = list(map(lambda month: month.lower(), 
+    calendar.month_name)), list(map(lambda day: day.lower(), calendar.day_name))
+
 month_names[0] = "all"
 day_names = ["all"] + day_names
 
@@ -25,13 +26,15 @@ def get_filters() -> tuple:
     Asks user to specify a city, month, and day to analyze.
 
     Returns:
-        Tuple of (city, month, day)
+        Tuple of (df, city, month, day)
+        (pd.DataFrame) df - DataFrame with Start Time converted to datetime object
         (str) city - name of the city to analyze
         (str) month - name of the month to filter by, or "all" to apply no month filter
         (str) day - name of the day of week to filter by, or "all" to apply no day filter
     """
     print('Hello! Let\'s explore some US bikeshare data!')
     city, month, day = None, None, None
+
 
     # get user input for city (chicago, new york city, washington).
     while city is None or city not in CITY_DATA.keys():
@@ -42,26 +45,39 @@ def get_filters() -> tuple:
             print("Enter a valid city name as input ({}).".format(
                 ", ".join(CITY_DATA.keys())))
 
+    city_file = CITY_DATA[city]
+    df = pd.read_csv(city_file)
+
+    df['Start Time'] = pd.to_datetime(df['Start Time'])
+    
+    # Add all as valid index, for month - 0, for day name - all
+    valid_month_indices = set(df['Start Time'].dt.month.values).union([0])
+    valid_day_indices = set(df['Start Time'].dt.day_name().apply(lambda x: x.lower())).union(['all'])
+
     # get user input for month (all, january, february, ... , june)
-    while month is None or month not in month_names:
+    while month is None or month not in month_names or month_names.index(month) not in valid_month_indices:
         month = input("Enter month name to filter by (all for no filter): ")
         month = month.lower()
         if not month or month not in month_names:
             print("Enter a valid month name as input ({}).".format(
                 ", ".join(month_names)))
+        elif month_names.index(month) not in valid_month_indices:
+            print("Data for the month of {} is not present in source dataset!".format(month))
 
     # get user input for day of week (all, monday, tuesday, ... sunday)
-    while day is None or day not in day_names:
-        day = input("Enter a day to filter by (all for no filter): ")
+    while day is None or day not in day_names or day not in valid_day_indices:
+        day = input("Enter a day name to filter by (all for no filter): ")
         day = day.lower()
         if not day or day not in day_names:
             print("Enter a valid day as input ({}).".format(", ".join(day_names)))
+        elif day not in valid_day_indices:
+            print("Data for {} is not present in source dataset!".format(day))
 
     print('-'*40)
-    return city, month, day
+    return df, city, month, day
 
 
-def load_data(city: str, month: str, day: str) -> pd.DataFrame:
+def filter_data(df: pd.DataFrame, city: str, month: str, day: str) -> pd.DataFrame:
     """
     Loads data for the specified city and filters by month and day if applicable.
 
@@ -72,9 +88,8 @@ def load_data(city: str, month: str, day: str) -> pd.DataFrame:
     Returns:
         df - Pandas DataFrame containing city data filtered by month and day
     """
-    city_file = CITY_DATA[city]
-    df = pd.read_csv(city_file)
-    df['Start Time'] = pd.to_datetime(df['Start Time'])
+
+    #df['Start Time'] = pd.to_datetime(df['Start Time'])
 
     # extract month and day of week from Start Time to create new columns
     df['month'] = df['Start Time'].dt.month
@@ -164,7 +179,7 @@ def time_stats(df: pd.DataFrame):
         prompt_end_time += time.time()
 
     print("\nThis took %s seconds." %
-          (time.time() - start_time - (prompt_end_time - prompt_start_time)))
+          round((time.time() - start_time - (prompt_end_time - prompt_start_time)), 4))
     print('-'*40)
 
 
@@ -180,18 +195,18 @@ def station_stats(df: pd.DataFrame):
     start_time = time.time()
 
     # display most common start station
-    print("\n The most common start station:{}".format(
+    print("\nThe most common start station:{}".format(
         df["Start Station"].mode()[0]))
 
     # display    most common end station
-    print("\n The most common end station:{}".format(
+    print("\nThe most common end station:{}".format(
         df["End Station"].mode()[0]))
 
     # display most frequent combination of start station and end station trip
-    print("\n The most common start-end station combinations:{}".format(
+    print("\nThe most common start-end station combinations:{}".format(
         (df["Start Station"] + "-" + df["End Station"]).mode()[0]))
 
-    print("\nThis took %s seconds." % (time.time() - start_time))
+    print("\nThis took %s seconds." % round((time.time() - start_time), 4))
     print('-'*40)
 
 
@@ -207,14 +222,14 @@ def trip_duration_stats(df: pd.DataFrame):
     start_time = time.time()
 
     # display total travel time
-    print("The total travel time it took for all of these trips is:", end=' ')
-    print("{} seconds".format(df['Trip Duration'].sum()))
+    print("The total travel time it took for all of these trips is", end=' ')
+    print("{}.".format(time.strftime('%H hours %M minutes %S seconds', time.gmtime(df['Trip Duration'].sum()))))
 
     # display mean travel time
-    print("The mean travel time for a trip is {} seconds.".format(
-        df['Trip Duration'].mean()))
+    print("The mean travel time for a trip is {}.".format(
+        time.strftime('%H hours %M minutes %S seconds', time.gmtime(df['Trip Duration'].mean()))))
 
-    print("\nThis took %s seconds." % (time.time() - start_time))
+    print("\nThis took %s seconds." % round((time.time() - start_time), 4))
     print('-'*40)
 
 
@@ -248,7 +263,8 @@ def user_stats(df: pd.DataFrame, city: str):
     print("\nThe average trip duration (HH:MM:SS), by customer type is:")
     print(pd.to_timedelta(df.groupby(["User Type"])[
           "Trip Duration"].mean().round(), unit='s').to_string())
-    print("\nThis took %s seconds." % (time.time() - start_time))
+
+    print("\nThis took %s seconds." % round((time.time() - start_time), 4))
     print('-'*40)
 
 
@@ -320,9 +336,9 @@ def display_raw_data(df: pd.DataFrame, start_pos: int, batch_size: int = 5):
 
 def main():
     while True:
-        city, month, day = get_filters()
+        df, city, month, day = get_filters()
         start_pos = 0
-        df = load_data(city, month, day)
+        df = filter_data(df, city, month, day)
 
         # Calculate stats by passing dataframe to each function call
         time_stats(df)
@@ -332,17 +348,32 @@ def main():
 
         raw_data_prompt = input(
             "Would you like to view the raw data (yes/no)? ")
-
+        
+        while raw_data_prompt not in ['yes', 'no']:
+            print("Invalid option, enter either yes or no.")
+            raw_data_prompt = input("Would you like to view the raw data (yes/no)?:")
+        
         while raw_data_prompt == "yes":
-            if raw_data_prompt == "yes":
                 display_raw_data(df, start_pos)
-                raw_data_prompt = input("Continue (yes/no)? ")
+                raw_data_prompt = input("Continue (yes/no)?")
+
+                while raw_data_prompt not in ['yes', 'no']:
+                    print("Invalid option, enter either yes or no.")
+                    raw_data_prompt = input("Continue (yes/no)?")
+
                 if raw_data_prompt == "yes":
                     start_pos += 5
                     continue
-                break
+                if raw_data_prompt == "no":
+                    break
+
         restart = input('\nWould you like to restart? Enter yes or no.\n')
-        if restart.lower() != 'yes':
+        
+        while restart not in ['yes', 'no']:
+            print("Invalid input. Please enter either yes or no as input.")
+            restart = input('\nWould you like to restart? Enter yes or no.\n')
+        
+        if restart.lower() ==  'no':
             break
 
 
