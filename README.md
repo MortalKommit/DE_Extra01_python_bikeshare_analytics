@@ -28,5 +28,4 @@ Start Time, End Time, Trip Duration, Start Station, End Station, User Type, Gend
 
 ### Changelog 
 1.1 August 2022
-- Changed bikeshare data passing syntax to create_data_graph. The code would run in the worksapce(pandas 0.23.3), whose syntax  
-differs in fetching datetime attributes, and selecting .loc columns.
+- Changed bikeshare data passing syntax to create_data_graph. The code would run in the worksapce(pandas 0.23.3), whose syntax differs in fetching datetime attributes, and selecting .loc columns.
