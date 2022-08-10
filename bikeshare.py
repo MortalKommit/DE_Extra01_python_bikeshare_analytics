@@ -263,7 +263,7 @@ def create_data_graph(df: pd.DataFrame, select_columns: list, grouping_columns:s
     min_range = 0
     max_range = max(grouped_df.loc[:, ''.join(stat)])
     if yticks is None:
-        yticks = np.linspace(min_range, max_range, num=len(grouped_df.loc[:, stat].values)).astype(int)
+        yticks = np.linspace(min_range, max_range, num=len(grouped_df.loc[:, ''.join(stat)].values)).astype(int)
 
     plt.yticks(yticks, ytick_labels)
     if xticks is not None:
@@ -273,9 +273,9 @@ def create_data_graph(df: pd.DataFrame, select_columns: list, grouping_columns:s
     plt.ylabel(ylabel)
     plt.title(graph_title)
     if not horizontal:
-        plt.bar(grouped_df.index.values.tolist(), grouped_df.loc[:,stat].values)
+        plt.bar(grouped_df.index.values.tolist(), grouped_df.loc[:,''.join(stat)].values)
     else:
-        plt.bar(grouped_df.index.values.tolist(), grouped_df.loc[:,stat].values, orientation='h', width=0.3, marker='fhd')
+        plt.bar(grouped_df.index.values.tolist(), grouped_df.loc[:,''.join(stat)].values, orientation='h', width=0.3, marker='fhd')
 
     plt.show()
     if saveplot[0] == 's':
