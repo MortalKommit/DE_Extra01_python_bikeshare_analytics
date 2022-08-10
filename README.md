@@ -10,8 +10,7 @@ Start Time, End Time, Trip Duration, Start Station, End Station, User Type, Gend
 
 ## Installation Instructions
 1. [Optional] Create and activate a virtual environment with venv, python3 -m venv <virtual_environment_name>, source <virtual_environment_name>/bin/activate  
-2. Install requirements with the given requirements.txt file: pip install -r requirements.txt or with
-   conda install --file conda_requirements.txt
+2. Install requirements with the given requirements.txt file: pip install -r requirements.txt 
 3. Verify that the plotext library has been installed for this project.
 
 ## Notes
@@ -27,3 +26,7 @@ Start Time, End Time, Trip Duration, Start Station, End Station, User Type, Gend
 - Exception handling with try/except to catch KeyErrors in case mode() or other methods return None
 - Use matplotlib with pie charts, histograms
 
+### Changelog 
+1.1 August 2022
+- Changed bikeshare data passing syntax to create_data_graph. The code would run in the worksapce(pandas 0.23.3), whose syntax  
+differs in fetching datetime attributes, and selecting .loc columns.

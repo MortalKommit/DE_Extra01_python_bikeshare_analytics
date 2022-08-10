@@ -74,7 +74,7 @@ def load_data(city: str, month: str, day: str) -> pd.DataFrame:
     
     # extract month and day of week from Start Time to create new columns
     df['month'] = df['Start Time'].dt.month
-    df['day_of_week'] = df['Start Time'].dt.weekday_name
+    df['day_of_week'] = df['Start Time'].dt.day_name()
     df['hour'] = df['Start Time'].apply(lambda x: x.strftime("%I %p"))
     
     df.rename(columns = {list(df)[0]: 'ride_id'}, inplace = True)
@@ -261,12 +261,14 @@ def create_data_graph(df: pd.DataFrame, select_columns: list, grouping_columns:s
     # Assume most graphs start from 0
 
     min_range = 0
-    max_range = max(grouped_df.loc[:,stat].values)
-    yticks = np.linspace(min_range, max_range, num=len(grouped_df.loc[:, stat].values)).astype(int)
+    max_range = max(grouped_df.loc[:, ''.join(stat)])
+    if yticks is None:
+        yticks = np.linspace(min_range, max_range, num=len(grouped_df.loc[:, stat].values)).astype(int)
+
+    plt.yticks(yticks, ytick_labels)
     if xticks is not None:
         plt.xticks(xticks, xtick_labels)
-    if yticks is not None:
-        plt.yticks(yticks, ytick_labels)
+
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(graph_title)
